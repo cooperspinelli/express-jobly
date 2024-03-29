@@ -106,5 +106,19 @@ router.delete("/:username", ensureCorrectUserOrAdmin, async function (req, res, 
   return res.json({ deleted: req.params.username });
 });
 
+/** POST /[username]/jobs/[jobId] => { applied: jobId}
+ *
+ * authorization required: admin or self
+ */
+router.post("/:username/jobs/:jobId", ensureCorrectUserOrAdmin, async function (req, res, next) {
+  if (isNaN(parseInt(req.params.jobId))) throw new NotFoundError();
+  const username = req.params.username;
+  const jobId = req.params.jobId;
+
+  const application = await User.applyToJob(username, jobId);
+
+  return res.json({applied: application.jobId});
+});
+
 
 module.exports = router;

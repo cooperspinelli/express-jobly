@@ -12,7 +12,8 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
-  adminToken
+  adminToken,
+  testJobs
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -196,6 +197,7 @@ describe("GET /users/:username", function () {
         username: "u1",
         firstName: "U1F",
         lastName: "U1L",
+        jobs: [],
         email: "user1@user.com",
         isAdmin: false,
       },
@@ -232,6 +234,7 @@ describe("GET /users/:username", function () {
         username: "u1",
         firstName: "U1F",
         lastName: "U1L",
+        jobs: [],
         email: "user1@user.com",
         isAdmin: false,
       },
@@ -376,3 +379,44 @@ describe("DELETE /users/:username", function () {
   });;
 
 });
+
+/************************************** POST /users/:username/jobs/:jobId */
+
+describe("POST /users/:username/jobs/:jobId", function () {
+
+  test("works for admin", async function () {
+    const resp = await request(app)
+      .post(`/users/u1/jobs/${testJobs[0].id}`)
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.body).toEqual({ applied: testJobs[0].id });
+  });
+
+  test("works for users", async function () {
+    const resp = await request(app)
+      .post(`/users/u1/jobs/${testJobs[0].id}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.body).toEqual({ applied: testJobs[0].id });
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app)
+      .post(`/users/u1/jobs/${testJobs[0].id}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("not found if job missing for admin", async function () {
+    const resp = await request(app)
+      .post(`/users/u1/jobs/100000000`)
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+
+  test("not found if username missing for admin", async function () {
+    const resp = await request(app)
+      .post(`/users/badUsername/jobs/${testJobs[0].id}`)
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+
+});
+

@@ -118,10 +118,12 @@ class User {
   }
 
 
-  //TODO:WRITE DOC
+  /** Takes in username and jobId and adds job application to database.
+   *
+   * Throws 404 if username of jobId does not exist  */
   static async applyToJob(username, jobId) {
 
-
+    // TODO: precheck for usernames for more helpful error messages
     try {
       const result = await db.query(`
         INSERT INTO applications
@@ -161,6 +163,12 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
+    const applicationsRes = await db.query(`
+      SELECT job_id AS "jobId"
+      FROM applications
+      WHERE username = $1`, [user.username]);
+
+    user.jobs = applicationsRes.rows.map(row => row.jobId);
     return user;
   }
 
