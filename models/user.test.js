@@ -12,6 +12,7 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  testJob
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -153,6 +154,37 @@ describe("get", function () {
   });
 });
 
+/************************************** job application */
+
+describe("job application", function () {
+  test("works", async function () {
+    const result = await User.applyToJob("u1", testJob[0].id);
+    const res = await db.query(
+      `SELECT job_id, username
+        FROM applications
+        WHERE job_id =${testJob[0].id} AND username = 'u1'`);
+    expect(res.rows.length).toEqual(1),
+      expect(result).toEqual({ username: "u1", jobId: testJob[0].id });
+  });
+
+  test("not found if no such jobID", async function () {
+    try {
+      await User.applyToJob("c1", 100000000000000);
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("not found if no such username", async function () {
+    try {
+      await User.applyToJob("Jerry", testJob[0].id);
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
 /************************************** update */
 
 describe("update", function () {
@@ -215,7 +247,7 @@ describe("remove", function () {
   test("works", async function () {
     await User.remove("u1");
     const res = await db.query(
-        "SELECT * FROM users WHERE username='u1'");
+      "SELECT * FROM users WHERE username='u1'");
     expect(res.rows.length).toEqual(0);
   });
 

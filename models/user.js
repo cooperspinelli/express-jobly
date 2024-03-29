@@ -56,7 +56,7 @@ class User {
    **/
 
   static async register(
-      { username, password, firstName, lastName, email, isAdmin }) {
+    { username, password, firstName, lastName, email, isAdmin }) {
     const duplicateCheck = await db.query(`
         SELECT username
         FROM users
@@ -84,13 +84,13 @@ class User {
                     last_name AS "lastName",
                     email,
                     is_admin AS "isAdmin"`, [
-          username,
-          hashedPassword,
-          firstName,
-          lastName,
-          email,
-          isAdmin,
-        ],
+      username,
+      hashedPassword,
+      firstName,
+      lastName,
+      email,
+      isAdmin,
+    ],
     );
 
     const user = result.rows[0];
@@ -115,6 +115,27 @@ class User {
     );
 
     return result.rows;
+  }
+
+
+  //TODO:WRITE DOC
+  static async applyToJob(username, jobId) {
+
+
+    try {
+      const result = await db.query(`
+        INSERT INTO applications
+               (username,
+               job_id)
+        VALUES ($1,$2)
+        RETURNING username, job_id AS "jobId"`,
+        [username, jobId]
+      );
+      return result.rows[0];
+    } catch (err) {
+      throw new NotFoundError("Username and or job does not exist");
+    }
+
   }
 
   /** Given a username, return data about user.
@@ -166,12 +187,12 @@ class User {
     }
 
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          firstName: "first_name",
-          lastName: "last_name",
-          isAdmin: "is_admin",
-        });
+      data,
+      {
+        firstName: "first_name",
+        lastName: "last_name",
+        isAdmin: "is_admin",
+      });
     const usernameVarIdx = "$" + (values.length + 1);
 
     const querySql = `
