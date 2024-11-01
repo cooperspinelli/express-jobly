@@ -11,3 +11,4 @@ To run the tests:
     jest -i
 
 Unit and integration testing done with Jest.
+
